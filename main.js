@@ -144,7 +144,7 @@ function main(){
 	taxiObject=new Taxi("",[0.6,0.8],0.2,0.2)
 	taxiObject.loadTaxi("https://imgur.com/thKSvp1.png");
 	TAXI.push(taxiObject);
-	taxicolor = new Rectangle([0.66,0.82], 0.0687, 0.16, "rgba(0,0,0,0.6)");
+	taxicolor = new Rectangle([0.66,0.82], 0.0687, 0.16, "rgba(0,0,0,0)");
 
 	carObstaclesObject=new carObstacles("","","","","")
 	carObstaclesObject.loadObstaclesImagesOnce();
@@ -162,8 +162,7 @@ function main(){
 	animatePassengerObject=new AnimatePassenger();
 	animateObject=new Animate();// animate();
     animatePassengerObject.animatePassenger();
-    var element = document.getElementById('destinationdistance');
-    element.innerText="Target"+passengers_distances[0]+' KM'
+
 }
 
 
