@@ -23,14 +23,16 @@ canvas{
 	transform:translate(-50%,-50%);
 	width:70vmin;
 	height:70vmin;
-	
+    font-size:40px;
+    font-weight:bold;
 	padding:1vmin;
 	margin:0px;
 	color: white;
 	border-radius:2vmin;
 	
 	font-size:3.3vmin;
-}.overlay-interactive{ 
+}
+.overlay-interactive{ 
 	position: absolute;
   	display: none;
   	transform:translate(-50%,-50%);
@@ -71,6 +73,49 @@ canvas{
   color: white;
   transform: translate(-50%,-50%);
   -ms-transform: translate(-50%,-50%);
+}
+.scoreboard{
+    position: absolute;
+    font-family: "Comic Sans MS";
+    font-size: 25px;
+    color: black;
+    font-weight: bold;
+}
+#gamespeed{
+    top: 10%;
+    left: 18%;
+}
+#countdown{
+    top: 15%;
+    left: 18%;
+    color:red;
+}
+#timetravelled{
+    top: 20%;
+    left: 18%;
+}
+#distancecovered{
+    top: 25%;
+    left: 18%;
+}#score{
+    top: 30%;
+    left: 18%;
+    color:green;
+}#destinationdistance{
+    top: 35%;
+    left: 18%;
+    color:green;
+}
+#timeover{
+    font-size: 30px;
+    color:red;
+}
+#gamestatus{
+    font-size: 30px;
+    color:green;
+}
+#showoverlay{
+    color:red;
 }
 
 a{
