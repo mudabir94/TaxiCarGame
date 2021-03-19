@@ -161,8 +161,9 @@ function main(){
 	// // Passenger Animation 
 	animatePassengerObject=new AnimatePassenger();
 	animateObject=new Animate();// animate();
-
-	animatePassengerObject.animatePassenger();
+    animatePassengerObject.animatePassenger();
+    var element = document.getElementById('destinationdistance');
+    element.innerText="Target"+passengers_distances[0]+' KM'
 }
 
 
@@ -327,6 +328,7 @@ class Rectangle{
 
 //Function Pick Passenger
 function pickPassenger(){
+   
 	if (isPassengerPicked == false) {
 		isPassengerPicked=true;
 		removePickPassengerOverlay();
@@ -726,6 +728,7 @@ class Passenger{
 	}
 
 	callTaxi(ctx){
+       
 		//Shout for Taxi
 		playSound(7);
 
@@ -739,7 +742,8 @@ class Passenger{
 
 		//Show Pick Passenger Overlay Text After 3 Secs
 		if (isPassengerPicked == false) {
-			// setTimeout(showPickPassengerOverlay,3000);
+            // setTimeout(showPickPassengerOverlay,3000);
+           
 			showPickPassengerOverlay();
 		}
 	}
@@ -1186,7 +1190,10 @@ class AnimatePassenger{
 		PASSENGER[0].callTaxi(passctx); //Shout for Taxi and Display "Taxi" text
 		}
 		else if (isPassengerPicked) {
-			// Passenger Walks to Taxi
+            // Passenger Walks to Taxi
+            var element = document.getElementById('destinationdistance');
+            element.innerText="Target: "+passengers_distances[0]+'KM'
+            
 			PASSENGER[0].location[0]-=0.002;///Making a major update///Remove this comment later
 
 			//Will  Only run For the first time the passenger sits inside the Taxi. 
