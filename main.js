@@ -2,6 +2,7 @@
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 // https://stackoverflow.com/questions/31106189/create-a-simple-10-second-countdown
 // GLOBAL VARIABLES
+// https://opengameart.org/content/free-top-down-car-sprites-by-unlucky-studio
 
 
 var CANVAS;
@@ -69,7 +70,7 @@ var isPaused = false;
 // 
 var time_in_ms_main=0;
 
-let passengers_distances=[5,20,50,70];
+let passengers_distances=[11,32,50,70];
 // let secs=0;
 let taxi_dis=0;
 let SCORE=0;
@@ -79,7 +80,7 @@ var animate_runtime_in_secs=0;
 
 
 var NOSFLAG=false;
-var NOSSPEED=0.02
+var NOSSPEED=0.016;
 
 // Class Object Arrays. 
 var ROADLINES=[]
@@ -100,6 +101,8 @@ let scoreBoardObject;
 let isPassengerPicked = false;
 let isNextPassengerPicked = false;
 
+//  For Distance Time. It will reset after every drop. 
+var seconds_passed_for_taxi=0;
 
 function initializeCanvas(canvasID){
 	const canvas=document.getElementById(canvasID);
@@ -361,7 +364,9 @@ class Taxi{
 	
 		if(currentKeysPressed['ArrowUp'] && TAXI[0].location[1] > UPPER_BOUNDARY) {
 			/* Arrow up was just pressed, or is being held down*/
-			  ctx.save();
+              ctx.save();
+              console.log("GAMESPEED",gameObject.getGameSpeed())
+			  console.log("NOSPEED",NOSSPEED)
 			  NOSFLAG=true;
 			  ROADLINES[0].location[2]+=NOSSPEED;	
 			  if (CAROBSTACLES.length!=0){
@@ -394,7 +399,9 @@ class Taxi{
 		if(currentKeysPressed['ArrowRight'] && TAXI[0].location[0] < RIGHT_BOUNDARY) {
 			   /* Arrow up was just pressed, or is being held down*/
 				ctx.save();
-	  
+                console.log("GAMESPEED",gameObject.getGameSpeed())
+                console.log("NOSPEED",NOSSPEED);
+                console.log("SPEED",SPEED);
 				TAXI[0].location[0]+=SPEED;
 				taxicolor.location[0]+=SPEED;
 				
@@ -405,7 +412,10 @@ class Taxi{
 	  
 		if(currentKeysPressed['ArrowLeft'] && TAXI[0].location[0] > LEFT_BOUNDARY) {
 			/* Arrow up was just pressed, or is being held down*/
-			ctx.save();
+            ctx.save();
+            console.log("GAMESPEED",gameObject.getGameSpeed())
+            console.log("NOSPEED",NOSSPEED)
+            console.log("SPEED",SPEED)
 			TAXI[0].location[0]-=SPEED;
 			taxicolor.location[0]-=SPEED;
 	  
@@ -442,13 +452,13 @@ class Game{
 		this.lvl=1;
 		this.secs_passed=0;
 		this.GAMESPEED=0.002;
-		// this.NOSSPEED=0.02
+		// this.NOSSPEED=0.008
 	}
 	selectGameLevel(){
 		if(loopcomplete==true){
 			var inx=getRandomIntInclusive(0,this.GAMELEVELS.length-1);
 			lvl=GAMELEVELS[inx]
-			// lvl=2;
+			// lvl=4;
 		
 			loopcomplete=false;
 			if(lvl==1){
@@ -501,7 +511,8 @@ class Game{
 			if(gameObject.getTotalTime()<= 0){
 				// Clear Interval STOP
 				clearInterval(gameObject.getSetIntervalObject());
-				document.getElementById("countdown").innerHTML = "Time is Finished";
+                document.getElementById("countdown").innerHTML = "Time is Finished";
+                stopSound(2);
 				continueAnimating=false;
 				window.cancelAnimationFrame(myReq);
 				timeOver();
@@ -509,11 +520,11 @@ class Game{
 				//   Count Down TIME
 					//   Time Spent Playing (SECS)
 				console.log("this.totalTime",gameObject.getTotalTime())
-
+                
 				gameObject.setSecsPassed(Math.abs(gameObject.getTotalTime()-gameObject.getTotalTimeTwo()));
 				// this.secs_passed=this.setInvObject
-				document.getElementById("timetravelled").innerHTML ="Time Secs:"+ gameObject.getSecsPassed();
-				document.getElementById("countdown").innerHTML ="Remaining Time Secs:"+ gameObject.getTotalTime() ;
+				document.getElementById("timetravelled").innerHTML ="Secs played:"+ gameObject.getSecsPassed();
+				document.getElementById("countdown").innerHTML ="Time Left:"+ gameObject.getTotalTime() ;
 			}
 			var tottime=gameObject.getTotalTime();
 			console.log("tottime",tottime)
@@ -522,6 +533,7 @@ class Game{
 			// debugger
 
 			gameObject.setTotalTime(tottime);
+            seconds_passed_for_taxi+=1;
 
 			if (!PASSENGERDROPPED){
 			gameObject.countScore(PASSENGERDROPPED);
@@ -535,18 +547,17 @@ class Game{
 		// Check if Up Arrow Key is pressed.  
 		// If not==// Run this is the Game speed is gradually increasing. 
 		if(NOSFLAG==false){
-			var gamespeed=this.GAMESPEED*1000
+			var gamespeed=gameObject.getGameSpeed()*1000
 		
 
-			taxi_dis=taxi_dis+gamespeed*gameObject.getSecsPassed()/1000;
-			console.log("taxi_dis",taxi_dis)
+			taxi_dis=taxi_dis+gamespeed*seconds_passed_for_taxi/1000;
 
 			document.getElementById("distancecovered").innerHTML ="Km:"+ parseFloat(taxi_dis.toFixed(5));
 		}
 		// Else Run this For NOS SPEED 
 		else{
 			var gamespeed=NOSSPEED*1000
-			taxi_dis=taxi_dis+gamespeed*gameObject.getSecsPassed()/1000
+			taxi_dis=taxi_dis+gamespeed*seconds_passed_for_taxi/1000
 
 			document.getElementById("distancecovered").innerHTML ="Km:"+ parseFloat(taxi_dis.toFixed(5)) ;
 		}
@@ -760,7 +771,7 @@ class Passenger{
 				
 				gameObject.setTotalTime(0);
 				
-				
+                stopSound(2)
 				continueAnimating=false;
 				window.cancelAnimationFrame(myReq);
 
@@ -769,10 +780,10 @@ class Passenger{
 				// animateObject.refreshAnimation();
 				let element = document.getElementById('gamestatus');
 				element.style.display='block';
-                element.innerHTML="You Won \n All Passengers Dropped Reached Destination \nSCORE: "+SCORE +"\n Click To Play Again";
+                element.innerHTML=" You WON \n All Passengers \n Dropped \nSCORE: "+SCORE +"\n Click To Play Again";
                
                 // Pause all sounds
-                stopAllSounds();
+                // stopAllSounds();
                  // Passenger Thanking the Taxi Driver. 
                 playSound(10);
 
@@ -803,7 +814,8 @@ class Passenger{
 			gameObject.setGameSpeed();
 
 			// Remove the  distance from the list. 
-			taxi_dis=0;
+            taxi_dis=0;
+            seconds_passed_for_taxi=0;
             animateObject.refreshAnimation();
               // Passenger Thanking the Taxi Driver. 
               playSound(10);
@@ -836,8 +848,8 @@ class Animate{
 			if (CAROBSTACLES.length==0){
 				CAROBSTACLES.push(new carObstacles(carsarr[0],[carOneLoc,cars_yloc],0.2,0.18))
 				CAROBSTACLES.push(new carObstacles(carsarr[1],[carTwoLoc,cars_yloc],0.2,0.18))
-				colorRects.push(new Rectangle([carOneLoc+0.07,cars_yloc], 0.06, 0.16, "rgba(255,0,0,0.5)"));
-				colorRects.push(new Rectangle([carTwoLoc+0.06,cars_yloc], 0.06, 0.16, "rgba(255,144,2,0.5)"));
+				colorRects.push(new Rectangle([carOneLoc+0.07,cars_yloc], 0.06, 0.16, "rgba(255,0,0,0)"));
+				colorRects.push(new Rectangle([carTwoLoc+0.06,cars_yloc], 0.06, 0.16, "rgba(255,144,2,0)"));
 			}
 			else if (CAROBSTACLES[i].location[1]>1){
 				CAROBSTACLES=[]
@@ -845,8 +857,11 @@ class Animate{
 				return true;
 			}
 			else{
-				CAROBSTACLES[i].location[1]+=gameObject.getGameSpeed();	
-				colorRects[i].location[1]+=gameObject.getGameSpeed();
+                if (!NOSFLAG){
+                    CAROBSTACLES[i].location[1]+=gameObject.getGameSpeed();	
+                    colorRects[i].location[1]+=gameObject.getGameSpeed();
+                }
+			
 			}
 		}
 	return false;
@@ -886,10 +901,10 @@ class Animate{
 				CAROBSTACLES.push(new carObstacles(carsarr[2],[carTwoLoc_x,carOneLoc_y],0.2,0.18))
 				CAROBSTACLES.push(new carObstacles(carsarr[3],[carTwoLoc_x,carTwoLoc_y],0.2,0.18))
 	
-				colorRects.push(new Rectangle([carOneLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(255,14,59,0.5)"));
-				colorRects.push(new Rectangle([carOneLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(255,29,23,0.5)"));
-				colorRects.push(new Rectangle([carTwoLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(25,220,10,0.5)"));
-				colorRects.push(new Rectangle([carTwoLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(2,0,200,0.5)"));
+				colorRects.push(new Rectangle([carOneLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(255,14,59,0)"));
+				colorRects.push(new Rectangle([carOneLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(255,29,23,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(25,220,10,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(2,0,200,0)"));
 	
 			}
 			else if (CAROBSTACLES[i].location[1]>1.4){
@@ -954,12 +969,12 @@ class Animate{
 				CAROBSTACLES.push(new carObstacles(carsarr[4],[carThreeLoc_x,carTwoLoc_y],0.2,0.18))
 				CAROBSTACLES.push(new carObstacles(carsarr[5],[carThreeLoc_x,carThreeLoc_y],0.2,0.18))
 
-				colorRects.push(new Rectangle([carOneLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(255,14,59,0.5)"));
-				colorRects.push(new Rectangle([carOneLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(255,29,23,0.5)"));
-				colorRects.push(new Rectangle([carTwoLoc_x+0.07,carThreeLoc_y], 0.06, 0.16, "rgba(25,220,10,0.5)"));
-				colorRects.push(new Rectangle([carTwoLoc_x+0.06,carOneLoc_y], 0.06, 0.16, "rgba(22,20,200,0.5)"));
-				colorRects.push(new Rectangle([carThreeLoc_x+0.07,carTwoLoc_y], 0.06, 0.16, "rgba(25,220,10,0.5)"));
-				colorRects.push(new Rectangle([carThreeLoc_x+0.06,carThreeLoc_y], 0.06, 0.16, "rgba(2,200,200,0.5)"));
+				colorRects.push(new Rectangle([carOneLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(255,14,59,0)"));
+				colorRects.push(new Rectangle([carOneLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(255,29,23,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.07,carThreeLoc_y], 0.06, 0.16, "rgba(25,220,10,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.06,carOneLoc_y], 0.06, 0.16, "rgba(22,20,200,0)"));
+				colorRects.push(new Rectangle([carThreeLoc_x+0.07,carTwoLoc_y], 0.06, 0.16, "rgba(25,220,10,0)"));
+				colorRects.push(new Rectangle([carThreeLoc_x+0.06,carThreeLoc_y], 0.06, 0.16, "rgba(2,200,200,0)"));
 
 			}
 			else if (CAROBSTACLES[i].location[1]>1.7){
@@ -977,7 +992,90 @@ class Animate{
 	}
 
 	levelFourAnimation(){
+		var car_locs_y=[-0.2,-0.4];
+		var car_locs_x=[0.2,0.3,0.4,0.6];
+		// var car_locs_x=[0.2,0.3,0.4,0.5,0.6];
+
+		carObstaclesObject.loadObstaclesImages(4);
 		
+
+		var index1=getRandomIntInclusive(0,car_locs_x.length-1)
+		var carOneLoc_x=car_locs_x[index1]
+		car_locs_x.splice(index1, 1);
+
+		var index1=getRandomIntInclusive(0,car_locs_x.length-1)
+		var carTwoLoc_x=car_locs_x[index1]
+		car_locs_x.splice(index1, 1);
+
+
+		var index1=getRandomIntInclusive(0,car_locs_x.length-1)
+        var carThreeLoc_x=car_locs_x[index1]
+        car_locs_x.splice(index1, 1);
+
+        var index1=getRandomIntInclusive(0,car_locs_x.length-1)
+        var carFourLoc_x=car_locs_x[index1]
+
+		
+		
+	// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+		var index1=getRandomIntInclusive(0,car_locs_y.length-1)
+		var carOneLoc_y=car_locs_y[index1]
+		car_locs_y.splice(index1, 1);
+
+		var index1=getRandomIntInclusive(0,car_locs_y.length-1)
+		var carTwoLoc_y=car_locs_y[index1]
+		car_locs_y.splice(index1, 1);
+
+
+		
+        var index1=getRandomIntInclusive(0,car_locs_y.length-1)
+        var carThreeLoc_y=car_locs_y[index1]
+        
+        
+
+
+
+		for (var i=0;i<carsarr.length;i++){
+
+			if (CAROBSTACLES.length==0){
+
+				CAROBSTACLES.push(new carObstacles(carsarr[0],[carOneLoc_x,carOneLoc_y],0.2,0.18))
+				CAROBSTACLES.push(new carObstacles(carsarr[1],[carOneLoc_x,carTwoLoc_y],0.2,0.18))
+				CAROBSTACLES.push(new carObstacles(carsarr[2],[carTwoLoc_x,carOneLoc_y],0.2,0.18))
+				CAROBSTACLES.push(new carObstacles(carsarr[3],[carTwoLoc_x,carTwoLoc_y],0.2,0.18))
+				CAROBSTACLES.push(new carObstacles(carsarr[4],[carThreeLoc_x,carOneLoc_y],0.2,0.18))
+                CAROBSTACLES.push(new carObstacles(carsarr[5],[carThreeLoc_x,carTwoLoc_y],0.2,0.18))
+                
+                
+                CAROBSTACLES.push(new carObstacles(carsarr[6],[carFourLoc_x,carOneLoc_y],0.2,0.18))
+                CAROBSTACLES.push(new carObstacles(carsarr[7],[carFourLoc_x,carTwoLoc_y],0.2,0.18))
+                CAROBSTACLES.push(new carObstacles(carsarr[8],[carThreeLoc_x,carOneLoc_y],0.2,0.18))
+
+
+				colorRects.push(new Rectangle([carOneLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(255,14,59,0)"));
+				colorRects.push(new Rectangle([carOneLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(255,29,23,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(25,220,10,0)"));
+				colorRects.push(new Rectangle([carTwoLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(22,20,200,0)"));
+				colorRects.push(new Rectangle([carThreeLoc_x+0.07,carOneLoc_y], 0.06, 0.16, "rgba(25,220,10,0.5)"));
+                colorRects.push(new Rectangle([carThreeLoc_x+0.06,carTwoLoc_y], 0.06, 0.16, "rgba(2,200,200,0.5)"));
+                
+                colorRects.push(new Rectangle([carFourLoc_x+0.06,carOneLoc_y], 0.06, 0.16, "rgba(2,0,200,0.5)"));
+                colorRects.push(new Rectangle([carFourLoc_x+0.07,carThreeLoc_y], 0.06, 0.16, "rgba(25,220,10,0.5)"));
+                colorRects.push(new Rectangle([carThreeLoc_x+0.06,carOneLoc_y], 0.06, 0.16, "rgba(2,0,200,0.5)"));
+
+			}
+			else if (CAROBSTACLES[i].location[1]>1){
+				CAROBSTACLES=[];
+				colorRects=[];
+				return true;			
+			}
+			else{
+				CAROBSTACLES[i].location[1]+=gameObject.getGameSpeed();
+				colorRects[i].location[1]+=gameObject.getGameSpeed();
+
+			}
+		}
+		return false;
 	}
 	
 	refreshAnimation(){
@@ -1102,7 +1200,8 @@ class AnimatePassenger{
 
 					PASSENGER[0].clearcanvas(passctx);
 					//Play Door close Sound
-					playSound(5); //Door closes
+                    playSound(5); //Door closes
+                    stopSound(2);
 
 					delete PASSENGER[0];
 					PASSENGER=[];	
@@ -1121,10 +1220,12 @@ class AnimatePassenger{
 
 					/*********************************************************************************/
 					//GAME ANIMATION CONTINUES
-					//Delaying Animation for 3 secs
+                    //Delaying Animation for 3 secs
+
 					setTimeout(() => { 
-						bgin.clearRect(0, 0, 1, 1);  // clear canvas
-						// Start Running the countdown function. it will run till 20 secs (default time)
+                        // Start Running the countdown function. it will run till 20 secs (default time)
+                        bgin.clearRect(0, 0, 1, 1);  // clear canvas
+
 						var setInvObject=setInterval(gameObject.countDown,gameObject.getSetIntervalTime());
 						gameObject.setSetIntervalObject(setInvObject);
 						animateObject.animate(); 
@@ -1152,7 +1253,7 @@ class AnimatePassenger{
 					PASSENGER[0].clearcanvas(passctx);
 					//Play Door close Sound
 					playSound(5); //Door closes
-
+                    stopSound(2)
 					delete PASSENGER[0];
 					PASSENGER=[];
 					// New Passenger Object	
@@ -1169,11 +1270,14 @@ class AnimatePassenger{
 
 					/*********************************************************************************/
 					//GAME ANIMATION CONTINUES
-					//Delaying Animation for 3 secs
+                    //Delaying Animation for 3 secs
+                    stopSound(2)
+
 					setTimeout(() => { 
-						bgin.clearRect(0, 0, 1, 1);  // clear canvas
-						animateObject.animate(); 
-					}, 3000);
+                        bgin.clearRect(0, 0, 1, 1);  // clear canvas
+
+                        animateObject.animate(); 
+					}, 500);
 
 				}
 			}
@@ -1216,7 +1320,7 @@ class AnimatePassenger{
 			PASSENGER.push(passengerObject);
             firstimePassengerAnimationRan=false;
             // Stop all sounds
-            stopAllSounds();
+            // stopAllSounds();
             //Show Picking Passenger Overlay
 			hideSomeOverlay("pause");
 			showSomeOverlay("picking_new_passenger_overlay");
@@ -1281,7 +1385,7 @@ function timeOver(){
 
 	let element = document.getElementById('timeover');
 	element.style.display='block';
-	element.innerHTML="TIME FINISHED \n SCORE: "+SCORE +"\n Click To Play Again";
+	element.innerHTML=" TIME FINISHED \n SCORE: "+SCORE +"\n Click To Play Again";
 
 }
 
@@ -1304,7 +1408,7 @@ function showOverlay(){
 
 	let element = document.getElementById('showoverlay');
 	element.style.display='block';
-	element.innerHTML="GAME OVER \n SCORE: "+SCORE +"\n Click To Play Again";
+	element.innerHTML=" GAME OVER \n SCORE: "+SCORE +"\n Click To Play Again";
 
 }
 
@@ -1321,12 +1425,42 @@ function showPickPassengerOverlay(){
 
 //Play Sound in Game
 function playSound(index){//index starts from zero(0)
-	SOUNDS[index].play();
+    // var playPromise = video.play();
+    var playPromise = SOUNDS[index].play();
+
+ 
+    if (playPromise !== undefined) {
+        playPromise.then(_ => {
+        // Automatic playback started!
+        // Show playing UI.
+        // We can now safely pause video...
+        video.pause();
+        })
+        .catch(error => {
+        // Auto-play was prevented
+        // Show paused UI.
+        });
+    }
 }
 
 //Play Passenger Sounds
 function playPassengerSound(){
-	getRandomPassengerScreamSound().play();
+    var playPromise = 	getRandomPassengerScreamSound().play();
+
+
+ 
+    if (playPromise !== undefined) {
+        playPromise.then(_ => {
+        // Automatic playback started!
+        // Show playing UI.
+        // We can now safely pause video...
+        video.pause();
+        })
+        .catch(error => {
+        // Auto-play was prevented
+        // Show paused UI.
+        });
+    }
 }
 
 //Stop playing sound
